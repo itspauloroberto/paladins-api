@@ -29,115 +29,86 @@ module.exports = class API {
     this.format = c[format];
   }
 
-  getPlayer(session, player, send) {
+  getPlayer(session, player) {
     var method = "getplayer";
     var url = this.urlBuilder(session, method, player);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getPlayerStatus(session, player, send) {
+  getPlayerStatus(session, player) {
     var method = "getplayerstatus";
     var url = this.urlBuilder(session, method, player);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getMatchHistory(session, player, send) {
+  getMatchHistory(session, player) {
     var method = "getmatchhistory";
     var url = this.urlBuilder(session, method, player);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getMatchDetails(session, match_id, send) {
+  getMatchDetails(session, match_id) {
     var method = "getmatchdetails";
     var url = this.urlBuilder(session, method, null, null, match_id);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getChampions(session, send) {
+  getChampions(session) {
     var method = "getchampions";
     var url = this.urlBuilder(session, method, null, this.lang);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getChampionRanks(session, player, send) {
+  getChampionRanks(session, player) {
     var method = "getchampionranks";
     var url = this.urlBuilder(session, method, player);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getChampionSkins(session, champ_id, send) {
+  getChampionSkins(session, champ_id) {
     var method = "getchampionskins";
     var url = this.urlBuilder(session, method, null, this.lang, null, champ_id);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
   //Currently returns an empty object. Don't know why.
-  getChampionRecommendedItems(session, champ_id, send) {
+  getChampionRecommendedItems(session, champ_id) {
     var method = "getchampionrecommendeditems";
     var url = this.urlBuilder(session, method, null, this.lang, null, champ_id);
-    request(url, function(err, res, body) {
-      if (!err) {
-        var bodyParsed = JSON.parse(body);
-        send(err, bodyParsed);
-      }
-    });
+    return this.makeRequest(url);
   }
 
-  getDemoDetails(session, match_id, send) {
+  getDemoDetails(session, match_id) {
     var method = "getdemodetails";
     var url = this.urlBuilder(session, method, null, null, match_id);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getQueueStats(session, player, queue, match_id, send) {
+  getQueueStats(session, player, queue, match_id) {
     var method = "getqueuestats";
     var url = this.urlBuilder(session, method, player, null, null, null, queue);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getItems(session, send) {
+  getItems(session) {
     var method = "getitems";
     var url = this.urlBuilder(session, method, null, this.lang);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getDataUsed(session, send) {
+  getDataUsed(session) {
     var method = "getdataused";
     var url = this.urlBuilder(session, method);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getPlayerLoadouts(session, player, send) {
+  getPlayerLoadouts(session, player) {
     var method = "getplayerloadouts";
     var url = this.urlBuilder(session, method, player);
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  getLeagueLeaderboard(session, queue, tier, season, send) {
+  getLeagueLeaderboard(session, queue, tier, season) {
     var method = "getleagueleaderboard";
     var url = this.urlBuilder(
       session,
@@ -150,12 +121,10 @@ module.exports = class API {
       tier,
       season
     );
-    this.makeRequest(url, (err, data) => {
-      send(err, data);
-    });
+    return this.makeRequest(url);
   }
 
-  connect(send) {
+  connect() {
     var url =
       c.PC +
       "/" +
@@ -167,26 +136,27 @@ module.exports = class API {
       this.getSignature("createsession") +
       "/" +
       this.timeStamp();
-    this.makeRequest(url, (err, data) => {
-      send(err, data.session_id);
-    });
+    return this.makeRequest(url).then(data => data.session_id);
   }
 
-  makeRequest(url, send) {
-    request(url, function(err, res, body) {
-      // The callback will be invoked with these variables, one should be filled one should be left null.
-      var localError = null,
-        bodyParsed = null;
-      if (!err) {
-        try {
-          bodyParsed = JSON.parse(body);
-        } catch (e) {
-          localError = { error: "Paladins API down.", exception: e };
+  makeRequest(url) {
+    return new Promise((resolve, reject) => {
+      request(url, function(err, res, body) {
+        // The callback will be invoked with these variables, one should be filled one should be left null.
+        var localError = null,
+          bodyParsed = null;
+        if (!err) {
+          try {
+            bodyParsed = JSON.parse(body);
+          } catch (e) {
+            localError = { error: "Paladins API down.", exception: e };
+          }
+        } else {
+          localError = { error: "Paladins API down.", data: err };
         }
-      } else {
-        localError = { error: "Paladins API down.", data: err };
-      }
-      send(localError, bodyParsed);
+        if (localError) reject(localError);
+        else resolve(bodyParsed);
+      });      
     });
   }
 
