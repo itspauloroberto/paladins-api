@@ -52,6 +52,12 @@ module.exports = class API {
     var url = this.urlBuilder(session, method, null, null, match_id);
     return this.makeRequest(url);
   }
+  
+  getMatchDetailsBatch(session, matches) {
+    var method = "getmatchdetailsbatch";
+    var url = this.urlBuilder(session, method, null, null, matches);
+    return this.makeRequest(url);
+  }
 
   getChampions(session) {
     var method = "getchampions";
